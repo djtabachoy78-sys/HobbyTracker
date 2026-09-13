@@ -33,3 +33,30 @@
 .check-box, .toggle-button { -fx-text-fill: #E5E7EB; -fx-padding: 8px 0; }
 .toggle-button:selected { -fx-background-color: #362019; -fx-text-fill: #FF8A5C; }
 .questlog-chart { -fx-background-color: transparent; -fx-padding: 4px; }.questlog-chart .chart-plot-background { -fx-background-color: #101827; }.questlog-chart .chart-bar { -fx-bar-fill: #FF6B35; }.questlog-chart .axis { -fx-tick-label-fill: #95A3B8; }
+
+/* Mobile UI tokens and immediate root-scoped light theme. */
+.avatar-button, .back-button { -fx-background-color: #1A253A; -fx-text-fill: #FFAD8E; -fx-background-radius: 18px; -fx-font-weight: 800; }
+.back-button { -fx-font-size: 24px; -fx-padding: 0 10px 3px 10px; }
+.quest-icon { -fx-font-size: 24px; -fx-min-width: 30px; -fx-alignment: top-center; }
+.status-complete { -fx-text-fill: #69D8FF; -fx-background-color: #18384A; }
+.stat-number.orange { -fx-text-fill: #FF8055; }.stat-number.cyan { -fx-text-fill: #59D9FF; }.stat-number.green { -fx-text-fill: #4FE09A; }.stat-number.purple { -fx-text-fill: #B89CFF; }
+.map-placeholder { -fx-background-color: linear-gradient(to bottom right, #1A3651, #14233D); -fx-background-radius: 16px; -fx-border-color: #39617C; -fx-border-radius: 16px; -fx-text-fill: #B7E9FF; -fx-font-weight: 800; -fx-text-alignment: center; }
+.tracker-value { -fx-text-fill: #F8FAFC; -fx-font-size: 21px; -fx-font-weight: 800; }
+.reading-timer { -fx-text-fill: #FF8055; -fx-font-size: 48px; -fx-font-weight: 900; -fx-alignment: CENTER; -fx-max-width: infinity; }
+.profile-avatar { -fx-background-color: #FF7247; -fx-background-radius: 45px; -fx-text-fill: white; -fx-font-size: 27px; -fx-font-weight: 900; -fx-padding: 15px 22px; }
+.profile-name { -fx-text-fill: #F1F5F9; -fx-font-size: 20px; -fx-font-weight: 800; }
+.theme-toggle { -fx-background-color: #1A253A; -fx-text-fill: #D7E1EE; -fx-background-radius: 16px; -fx-padding: 7px 12px; -fx-font-weight: 800; }.theme-toggle:selected { -fx-background-color: #FF7247; -fx-text-fill: white; }
+.rank-badge { -fx-text-fill: #FFD86B; -fx-background-color: #4A3914; -fx-font-size: 9px; -fx-font-weight: 900; -fx-padding: 4px 7px; -fx-background-radius: 9px; }
+.theme-light { -fx-background-color: #F4F7FB; }.theme-light .top-header, .theme-light .mobile-navigation { -fx-background-color: white; -fx-border-color: #D9E2EF; }
+.theme-light .content-scroll, .theme-light .content-scroll > .viewport { -fx-background-color: #F4F7FB; -fx-background: #F4F7FB; }.theme-light .questlog-card { -fx-background-color: white; -fx-border-color: #D9E2EF; }
+.theme-light .page-greeting, .theme-light .section-title, .theme-light .quest-name, .theme-light .profile-name, .theme-light .tracker-value { -fx-text-fill: #19243A; }.theme-light .muted-text { -fx-text-fill: #60718C; }
+.theme-light .questlog-button-secondary, .theme-light .avatar-button, .theme-light .back-button, .theme-light .filter-chip, .theme-light .theme-toggle { -fx-background-color: #E8EEF7; -fx-text-fill: #34445F; }.theme-light .mobile-nav-active { -fx-background-color: #FFF0EA; }.theme-light .questlog-progress > .track { -fx-background-color: #DCE5F0; }
+
+/* Desktop companion UI */
+.desktop-sidebar { -fx-background-color: #121A2D; -fx-border-color: transparent #26324B transparent transparent; }
+.desktop-nav-item { -fx-background-color: transparent; -fx-text-fill: #AAB4C5; -fx-alignment: CENTER_LEFT; -fx-padding: 12px 13px; -fx-font-weight: 700; -fx-background-radius: 10px; -fx-cursor: hand; }
+.desktop-nav-item:hover { -fx-background-color: #1A253A; -fx-text-fill: white; }.desktop-nav-active { -fx-background-color: #362019; -fx-text-fill: #FF9A74; }
+.desktop-greeting { -fx-text-fill: white; -fx-font-size: 18px; -fx-font-weight: 800; }.desktop-stat { -fx-font-size: 25px; -fx-font-weight: 900; }.desktop-stat.orange { -fx-text-fill: #FF8055; }.desktop-stat.cyan { -fx-text-fill: #59D9FF; }.desktop-stat.green { -fx-text-fill: #4FE09A; }.desktop-stat.purple { -fx-text-fill: #B89CFF; }
+.desktop-map { -fx-background-color: linear-gradient(to bottom right, #1A3651, #14233D); -fx-background-radius: 16px; -fx-border-color: #39617C; -fx-border-radius: 16px; -fx-text-fill: #B7E9FF; -fx-font-size: 16px; -fx-font-weight: 800; -fx-text-alignment: center; }
+.desktop-timer { -fx-text-fill: #FF8055; -fx-font-size: 72px; -fx-font-weight: 900; }.desktop-avatar { -fx-background-color: #FF7247; -fx-background-radius: 55px; -fx-text-fill: white; -fx-font-size: 34px; -fx-font-weight: 900; -fx-padding: 19px 28px; }
+.signout-button { -fx-alignment: CENTER_LEFT; }.theme-light .desktop-sidebar { -fx-background-color: white; -fx-border-color: transparent #D9E2EF transparent transparent; }.theme-light .desktop-nav-item { -fx-text-fill: #60718C; }.theme-light .desktop-nav-active { -fx-background-color: #FFF0EA; -fx-text-fill: #D95022; }.theme-light .desktop-greeting { -fx-text-fill: #19243A; }
