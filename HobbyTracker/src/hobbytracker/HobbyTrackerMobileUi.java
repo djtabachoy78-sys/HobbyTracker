@@ -30,7 +30,7 @@ public class HobbyTrackerMobileUi {
     private final StackPane contentHost = new StackPane();
     private final HBox bottomNav = new HBox(4);
     private final List<Hobby> hobbies = List.of(new Hobby("Gaming", "Finish the co-op campaign", .80, "Active", 6), new Hobby("Coding", "Build Questlog", .60, "Active", 4), new Hobby("Drawing", "Portrait study", .50, "Paused", 2), new Hobby("Reading", "Science-fiction shelf", 1, "Completed", 8));
-    public HobbyTrackerMobileUi(HobbyTracker application) { this(application,"Adventurer"); }
+    public HobbyTrackerMobileUi(HobbyTracker application) { this(application, SessionManager.currentUser().map(User::displayName).orElse("Adventurer")); }
     public HobbyTrackerMobileUi(HobbyTracker application,String username) { this.application=application;this.username=username; }
     public void show() {
         Stage stage=new Stage(); BorderPane root=new BorderPane();root.getStyleClass().add("questlog-root");root.setTop(header());root.setCenter(contentHost);root.setBottom(bottom(stage));switchView("Home",dashboard());

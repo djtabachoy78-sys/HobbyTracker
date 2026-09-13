@@ -1,113 +1,30 @@
 package hobbytracker;
 
 import animatefx.animation.FadeIn;
-import java.util.List;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
-import javafx.scene.Node;
-import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.Label;
-import javafx.scene.control.ProgressBar;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.Separator;
-import javafx.scene.control.TextField;
-import javafx.scene.control.ToggleButton;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.FlowPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
-import javafx.stage.Stage;
+import java.nio.file.*; import java.util.*; import java.util.concurrent.*;
+import javafx.application.Platform; import javafx.geometry.*; import javafx.scene.*; import javafx.scene.control.*; import javafx.scene.layout.*; import javafx.stage.Stage;
 
-/** Responsive desktop UI. Hobby entries are small in-memory demo data, ready for a real source later. */
+/** The original desktop UI, with each view populated by the H2 DAO. */
 public class HobbyTrackerPcUi {
-    private final HobbyTracker application;
-    private final String username;
-    private final StackPane contentHost = new StackPane();
-    private final VBox navigation = new VBox(6);
-    private final List<Hobby> hobbies = List.of(new Hobby("Gaming", "Finish the co-op campaign", .80, "Active", 6), new Hobby("Coding", "Build Questlog", .60, "Active", 4), new Hobby("Drawing", "Portrait study", .50, "Paused", 2), new Hobby("Reading", "Science-fiction shelf", 1, "Completed", 8));
-
-    public HobbyTrackerPcUi(HobbyTracker application) { this(application, "Adventurer"); }
-    public HobbyTrackerPcUi(HobbyTracker application, String username) { this.application = application; this.username = username; }
-
-    public void show(Stage stage) {
-        BorderPane root = new BorderPane(); root.getStyleClass().add("questlog-root");
-        root.setTop(header()); root.setLeft(sidebar(stage)); root.setCenter(contentHost); switchView("Dashboard", createDashboardView());
-        Scene scene = new Scene(root, 1180, 760); HobbyTracker.applyStyle(scene);
-        stage.setScene(scene); stage.setMinWidth(850); stage.setMinHeight(600); stage.show();
-    }
-    private Node header() {
-        Label brand = new Label("QUESTLOG"); brand.getStyleClass().add("brand-title");
-        Label caption = new Label("CONTROL CENTER"); caption.getStyleClass().add("header-caption");
-        Region gap = new Region(); HBox.setHgrow(gap, Priority.ALWAYS);
-        Label state = badge("● ACTIVE", "status-active");
-        Button mobile = new Button("OPEN MOBILE VIEW"); mobile.getStyleClass().add("quiet-button"); mobile.setOnAction(e -> new HobbyTrackerMobileUi(application, username).show());
-        HBox box = new HBox(16, new VBox(1, brand, caption), gap, new Label("68% OVERALL PROGRESS"), state, mobile, new Button(username));
-        box.setAlignment(Pos.CENTER_LEFT); box.setPadding(new Insets(16, 24, 16, 24)); box.getStyleClass().add("top-header"); return box;
-    }
-    private Node sidebar(Stage stage) {
-        Label label = new Label("YOUR QUESTS"); label.getStyleClass().add("sidebar-label");
-        for (String name : List.of("Dashboard", "Quests", "Stats", "Settings", "Profile")) navigation.getChildren().add(nav(name, stage));
-        Region gap = new Region(); VBox.setVgrow(gap, Priority.ALWAYS);
-        Button logout = new Button("Sign out"); logout.getStyleClass().add("sidebar-signout"); logout.setOnAction(e -> application.showLogin(stage));
-        VBox box = new VBox(14, label, navigation, gap, logout); box.setPadding(new Insets(24,14,20,14)); box.setPrefWidth(205); box.getStyleClass().add("questlog-sidebar"); return box;
-    }
-    private Button nav(String name, Stage stage) {
-        Button button = new Button(name); button.setMaxWidth(Double.MAX_VALUE); button.getStyleClass().add("questlog-nav-item");
-        button.setOnAction(e -> switchView(name, switch (name) { case "Quests" -> createQuestsView(); case "Stats" -> createStatsView(); case "Settings" -> createSettingsView(); case "Profile" -> createProfileView(stage); default -> createDashboardView(); })); return button;
-    }
-    private void switchView(String name, Node view) {
-        navigation.getChildren().forEach(n -> { Button b=(Button)n; b.getStyleClass().remove("questlog-nav-item-active"); if(b.getText().equals(name)) b.getStyleClass().add("questlog-nav-item-active"); });
-        contentHost.getChildren().setAll(view); new FadeIn(view).setSpeed(1.7).play();
-    }
-    private Node createDashboardView() {
-        VBox hello = title("Welcome back, " + username, "Here is how your personal quests are progressing.");
-        FlowPane metrics = new FlowPane(16,16, metric("68%", "Overall progress", "hero-number"), metric("05", "Active hobbies", "stat-number"), metric("12", "Completed quests", "stat-number"), metric("08", "Current streak", "stat-number"));
-        FlowPane questCards = new FlowPane(14,14); hobbies.stream().filter(h -> !h.status.equals("Completed")).forEach(h -> questCards.getChildren().add(hobbyCard(h)));
-        VBox feed = new VBox(12, activity("TODAY", "Progress updated", "Coding quest is now 60% complete."), activity("YESTERDAY", "New hobby added", "Drawing has joined your quest log."), activity("FRIDAY", "Streak increased", "Gaming streak reached 6 days.")); feed.getStyleClass().add("questlog-card");
-        VBox actions = actions(); HBox lower = new HBox(16,feed,actions); HBox.setHgrow(feed,Priority.ALWAYS); feed.setMaxWidth(Double.MAX_VALUE);
-        return scroll(new VBox(24,hello,section("Overall progress", "Small wins add up."),metrics,section("Active hobby quests", "Your current side quests"),questCards,section("Recent activity", "Your latest progress"),lower));
-    }
-    private Node createQuestsView() {
-        VBox cards = new VBox(12); cards.getChildren().addAll(hobbies.stream().map(this::hobbyCard).toList());
-        return scroll(new VBox(20,title("Your hobby quests", "Every hobby deserves a place in the log."),section("All quests", "Active, paused and completed hobbies"),cards));
-    }
-    private Node createStatsView() {
-        FlowPane metrics = new FlowPane(16,16, metric("42h", "Total hours logged", "stat-number"),metric("08", "Current streak", "stat-number"),metric("12", "Quests completed", "stat-number"),metric("74%", "Monthly consistency", "hero-number"));
-        VBox weekly = new VBox(12,section("Weekly momentum", "A simple snapshot until you connect real activity data."),barRow("Mon",.65),barRow("Tue",.90),barRow("Wed",.45),barRow("Thu",.75),barRow("Fri",.60)); weekly.getStyleClass().add("questlog-card");
-        return scroll(new VBox(20,title("Statistics", "Your time and consistency at a glance."),metrics,weekly));
-    }
-    private Node createSettingsView() {
-        ToggleButton dark = new ToggleButton("Dark mode"); dark.setSelected(true); CheckBox notifications = new CheckBox("Quest notifications"); notifications.setSelected(true); CheckBox sync = new CheckBox("Enable mobile syncing");
-        Label note = muted("Preferences are saved for this session only.");
-        Button backup = new Button("DATA BACKUP"); backup.getStyleClass().add("questlog-button-secondary"); backup.setOnAction(e -> note.setText("Backup placeholder: connect your storage provider here."));
-        Button clear = new Button("CLEAR CACHE"); clear.getStyleClass().add("questlog-button-secondary"); clear.setOnAction(e -> note.setText("Cache placeholder: no local cache is currently stored."));
-        VBox card = new VBox(15,dark,notifications,sync,new Separator(),backup,clear,note); card.getStyleClass().add("questlog-card");
-        return scroll(new VBox(20,title("Settings", "Keep Questlog feeling like yours."),card));
-    }
-    private Node createProfileView(Stage stage) {
-        TextField display = new TextField(username); TextField email = new TextField(username.toLowerCase().replace(' ', '.') + "@questlog.local"); Label saved = muted("Level 5 Hobbyist · Joined September 2026");
-        Button save = new Button("SAVE PROFILE"); save.getStyleClass().add("questlog-button-primary"); save.setOnAction(e -> saved.setText("Profile details saved for this session."));
-        Button logout = new Button("SIGN OUT"); logout.getStyleClass().add("questlog-button-secondary"); logout.setOnAction(e -> application.showLogin(stage));
-        VBox card = new VBox(13,new Label("LEVEL 5 HOBBYIST"),new Label("Display name"),display,new Label("Email"),email,save,new Separator(),logout,saved); card.getStyleClass().add("questlog-card");
-        return scroll(new VBox(20,title("Your profile", "The adventurer behind the quests."),card));
-    }
-    private VBox actions() { Button add=button("+ ADD HOBBY",true); Button update=button("UPDATE PROGRESS",false); Button complete=button("COMPLETE QUEST",false); Label note=muted("Demo actions are ready for your data layer."); return card(new VBox(12,new Label("Today’s actions"),add,update,complete,note)); }
-    private VBox hobbyCard(Hobby h) { Label name=new Label(h.name);name.getStyleClass().add("quest-name"); Region topGap=new Region();HBox.setHgrow(topGap,Priority.ALWAYS); Region actionGap=new Region();HBox.setHgrow(actionGap,Priority.ALWAYS); Button update=button("UPDATE",false); update.setOnAction(e -> update.setText("UPDATED")); VBox b=card(new VBox(10,new HBox(name,topGap,badge(h.status,h.status.equals("Completed")?"status-active":"status-pending")),muted(h.detail+" · "+h.streak+" day streak"),progress(h.progress),new HBox(muted((int)(h.progress*100)+"% complete"),actionGap,update))); b.getStyleClass().add("hobby-card");return b; }
-    private VBox metric(String value,String label,String style) { Label n=new Label(value);n.getStyleClass().add(style);Label l=muted(label);return card(new VBox(7,n,l)); }
-    private HBox barRow(String day,double value) { Label l=new Label(day);l.setPrefWidth(38);ProgressBar p=progress(value);HBox.setHgrow(p,Priority.ALWAYS);return new HBox(10,l,p,new Label((int)(value*100)+"%")); }
-    private VBox title(String heading,String detail) { Label h=new Label(heading);h.getStyleClass().add("page-greeting");return new VBox(4,h,muted(detail)); }
-    private VBox section(String heading,String detail) { Label h=new Label(heading);h.getStyleClass().add("section-title");return new VBox(2,h,muted(detail)); }
-    private VBox activity(String when,String heading,String detail) { Label w=new Label(when);w.getStyleClass().add("timeline-time");Label h=new Label(heading);h.getStyleClass().add("timeline-title");return new VBox(3,w,h,muted(detail)); }
-    private VBox card(Node node) { VBox b=new VBox();b.getChildren().add(node);b.getStyleClass().add("questlog-card");return b; }
-    private ScrollPane scroll(Node view) { VBox wrap=new VBox(view);wrap.setPadding(new Insets(30));ScrollPane s=new ScrollPane(wrap);s.setFitToWidth(true);s.getStyleClass().add("content-scroll");return s; }
-    private Button button(String text,boolean primary) { Button b=new Button(text);b.getStyleClass().add(primary?"questlog-button-primary":"questlog-button-secondary");return b; }
-    private Label muted(String text) { Label l=new Label(text);l.getStyleClass().add("muted-text");return l; }
-    private Label badge(String text,String style) { Label l=new Label(text.toUpperCase());l.getStyleClass().addAll("status-badge",style);return l; }
-    private ProgressBar progress(double value) { ProgressBar p=new ProgressBar(value);p.setMaxWidth(Double.MAX_VALUE);p.getStyleClass().add("questlog-progress");return p; }
-    private record Hobby(String name,String detail,double progress,String status,int streak) { }
+ private final HobbyTracker app; private final StackPane host=new StackPane(); private final VBox navs=new VBox(6); private final QuestDao dao=new QuestDao(); private final ExecutorService io=Executors.newSingleThreadExecutor(r->{Thread t=new Thread(r,"questlog-db");t.setDaemon(true);return t;}); private Stage stage; private String view="Dashboard";
+ public HobbyTrackerPcUi(HobbyTracker app){this.app=app;} public HobbyTrackerPcUi(HobbyTracker app,String ignored){this(app);}
+ public void show(Stage s){stage=s;BorderPane root=new BorderPane();root.getStyleClass().add("questlog-root");root.setTop(header());root.setLeft(sidebar());root.setCenter(host);Scene scene=new Scene(root,1180,760);HobbyTracker.applyStyle(scene);s.setScene(scene);s.setMinWidth(850);s.setMinHeight(600);s.show();open("Dashboard");}
+ private User me(){return SessionManager.currentUser().orElseThrow();}
+ private Node header(){Label brand=new Label("QUESTLOG");brand.getStyleClass().add("brand-title");Label cap=new Label("CONTROL CENTER");cap.getStyleClass().add("header-caption");Region gap=new Region();HBox.setHgrow(gap,Priority.ALWAYS);Button mobile=new Button("OPEN MOBILE VIEW");mobile.getStyleClass().add("quiet-button");mobile.setOnAction(e->new HobbyTrackerMobileUi(app).show());HBox box=new HBox(16,new VBox(1,brand,cap),gap,badge("● ACTIVE","status-active"),mobile,new Button(me().displayName()));box.setAlignment(Pos.CENTER_LEFT);box.setPadding(new Insets(16,24,16,24));box.getStyleClass().add("top-header");return box;}
+ private Node sidebar(){for(String n:List.of("Dashboard","Quests","Stats","Settings","Profile"))navs.getChildren().add(nav(n));Region g=new Region();VBox.setVgrow(g,Priority.ALWAYS);Button out=new Button("Sign out");out.getStyleClass().add("sidebar-signout");out.setOnAction(e->run(()->{new AuthService().logout(me());return null;},x->app.showLogin(stage)));VBox box=new VBox(14,new Label("YOUR QUESTS"),navs,g,out);box.setPadding(new Insets(24,14,20,14));box.setPrefWidth(205);box.getStyleClass().add("questlog-sidebar");return box;}
+ private Button nav(String n){Button b=new Button(n);b.setMaxWidth(Double.MAX_VALUE);b.getStyleClass().add("questlog-nav-item");b.setOnAction(e->open(n));return b;}
+ private void open(String n){view=n;navs.getChildren().forEach(x->{Button b=(Button)x;b.getStyleClass().remove("questlog-nav-item-active");if(b.getText().equals(n))b.getStyleClass().add("questlog-nav-item-active");});switch(n){case "Quests"->run(()->dao.hobbies(me().id(),false),this::quests);case "Stats"->run(()->new Object[]{dao.metrics(me().id()),dao.weeklyActivity(me().id())},this::stats);case "Settings"->settings();case "Profile"->profile();default->run(()->new Object[]{dao.metrics(me().id()),dao.hobbies(me().id(),true),dao.recent(me().id(),6)},this::dashboard);}}
+ private <T> void run(Callable<T> c,java.util.function.Consumer<T> done){host.getChildren().setAll(new ProgressIndicator());CompletableFuture.supplyAsync(()->{try{return c.call();}catch(Exception e){throw new CompletionException(e);}},io).whenComplete((v,e)->Platform.runLater(()->{if(e!=null){alert(Alert.AlertType.ERROR,"Database error",root(e).getMessage());return;}done.accept(v);}));}
+ private void replace(Node n){host.getChildren().setAll(n);new FadeIn(n).setSpeed(1.7).play();}
+ private void dashboard(Object[] x){QuestDao.Metrics m=(QuestDao.Metrics)x[0];@SuppressWarnings("unchecked")List<Hobby> hs=(List<Hobby>)x[1];@SuppressWarnings("unchecked")List<String[]> logs=(List<String[]>)x[2];FlowPane hcards=new FlowPane(14,14);hs.forEach(h->hcards.getChildren().add(hobbyCard(h)));VBox feed=new VBox(12);logs.forEach(a->feed.getChildren().add(activity(a[0],a[1],a[2])));if(logs.isEmpty())feed.getChildren().add(muted("No activity yet. Add a hobby to begin."));feed.getStyleClass().add("questlog-card");FlowPane metrics=new FlowPane(16,16,metric(String.format("%.0f%%",m.overall()),"Overall progress","hero-number"),metric(String.format("%02d",m.active()),"Active hobbies","stat-number"),metric(String.format("%02d",m.completed()),"Completed quests","stat-number"),metric(String.format("%02d",m.streak()),"Current streak","stat-number"));replace(scroll(new VBox(24,title("Welcome back, "+me().displayName(),"Here is how your personal quests are progressing."),section("Overall progress","Small wins add up."),metrics,section("Active hobby quests","Your current side quests"),hcards,section("Recent activity","Your latest progress"),new HBox(16,feed,actions(hs)))));}
+ private void quests(List<Hobby> hs){VBox cards=new VBox(12);hs.forEach(h->cards.getChildren().add(hobbyCard(h)));replace(scroll(new VBox(20,title("Your hobby quests","Every hobby deserves a place in the log."),section("All quests","Active, paused and completed hobbies"),cards)));}
+ private void stats(Object[] x){QuestDao.Metrics m=(QuestDao.Metrics)x[0];int[] w=(int[])x[1];VBox weekly=new VBox(12,section("Weekly momentum","Actions logged in the last seven days."));String[] days={"Mon","Tue","Wed","Thu","Fri","Sat","Sun"};for(int i=0;i<7;i++)weekly.getChildren().add(bar(days[i],w[i]));weekly.getStyleClass().add("questlog-card");replace(scroll(new VBox(20,title("Statistics","Your time and consistency at a glance."),new FlowPane(16,16,metric("—","Total hours logged*","stat-number"),metric(String.format("%02d",m.streak()),"Current streak","stat-number"),metric(String.format("%02d",m.completed()),"Quests completed","stat-number"),metric(String.format("%.0f%%",m.overall()),"Monthly consistency","hero-number")),weekly,muted("* No duration field exists. Add logged_minutes to activity_logs to calculate total hours."))));}
+ private void settings(){Label note=muted("No temporary cache table exists; permanent data is never cleared.");Button backup=button("DATA BACKUP",false);backup.setOnAction(e->run(()->{Path dir=Paths.get("backups");Files.createDirectories(dir);Path f=dir.resolve("questlog-"+me().id()+"-"+System.currentTimeMillis()+".json");Files.writeString(f,dao.exportJson(me().id()));dao.log(me().id(),"Backup export","Exported data to "+f.toAbsolutePath());return f;},f->note.setText("Backup exported: "+f.toAbsolutePath())));Button clear=button("CLEAR CACHE",false);clear.setOnAction(e->note.setText("Nothing cleared: there are no disposable cache records."));VBox c=new VBox(15,new ToggleButton("Dark mode"),new CheckBox("Quest notifications"),new CheckBox("Enable mobile syncing"),new Separator(),backup,clear,note);c.getStyleClass().add("questlog-card");replace(scroll(new VBox(20,title("Settings","Keep Questlog feeling like yours."),c)));}
+ private void profile(){User u=me();TextField name=new TextField(u.displayName()),email=new TextField(u.email());Label msg=muted("Level "+u.level()+" Hobbyist");Button save=button("SAVE PROFILE",true);save.setOnAction(e->{String n=name.getText().trim(),mail=email.getText().trim();if(n.isBlank()||!mail.matches("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$")){msg.setText("Enter a display name and valid email.");return;}run(()->{User changed=dao.updateUser(u.id(),n,mail);dao.log(u.id(),"Profile updated","Updated profile details.");return changed;},changed->{SessionManager.start(changed);msg.setText("Profile saved.");});});Button out=button("SIGN OUT",false);out.setOnAction(e->run(()->{new AuthService().logout(u);return null;},z->app.showLogin(stage)));VBox c=new VBox(13,new Label("LEVEL "+u.level()+" HOBBYIST"),new Label("Display name"),name,new Label("Email"),email,save,new Separator(),out,msg);c.getStyleClass().add("questlog-card");replace(scroll(new VBox(20,title("Your profile","The adventurer behind the quests."),c)));}
+ private VBox actions(List<Hobby> hs){Button add=button("+ ADD HOBBY",true);add.setOnAction(e->add());Button upd=button("UPDATE PROGRESS",false);upd.setOnAction(e->{if(hs.isEmpty())alert(Alert.AlertType.INFORMATION,"Questlog","Add a hobby first.");else progress(hs.get(0));});Button done=button("COMPLETE QUEST",false);done.setOnAction(e->{if(!hs.isEmpty())complete(hs.get(0));});return card(new VBox(12,new Label("Today’s actions"),add,upd,done));}
+ private VBox hobbyCard(Hobby h){Label name=new Label(h.title());name.getStyleClass().add("quest-name");Region gap=new Region();HBox.setHgrow(gap,Priority.ALWAYS);Button upd=button("UPDATE",false);upd.setOnAction(e->progress(h));Button done=button("COMPLETE",false);done.setDisable("COMPLETED".equals(h.status()));done.setOnAction(e->complete(h));return card(new VBox(10,new HBox(name,gap,badge(h.status(),"COMPLETED".equals(h.status())?"status-active":"status-pending")),muted((h.description()==null?"":h.description())+" · "+h.streakDays()+" day streak"),progressBar(h.progressPercentage()/100d),new HBox(muted(h.progressPercentage()+"% complete"),upd,done)));}
+ private void add(){TextInputDialog d=new TextInputDialog();d.setTitle("Add hobby");d.setHeaderText("Start a new quest");d.setContentText("Hobby title:");d.showAndWait().map(String::trim).filter(s->!s.isBlank()).ifPresent(t->run(()->{dao.addHobby(me().id(),t,"");dao.log(me().id(),"Hobby created","Added "+t+".");return null;},z->open(view)));}
+ private void progress(Hobby h){TextInputDialog d=new TextInputDialog(""+h.progressPercentage());d.setTitle("Update progress");d.setHeaderText(h.title());d.setContentText("Progress (0–100):");d.showAndWait().ifPresent(s->{try{int p=Integer.parseInt(s.trim());if(p<0||p>100)throw new NumberFormatException();run(()->{dao.updateProgress(h.id(),p);dao.log(me().id(),"Progress updated",h.title()+" is now "+p+"% complete.");return null;},z->open(view));}catch(NumberFormatException ex){alert(Alert.AlertType.WARNING,"Questlog","Progress must be a whole number from 0 to 100.");}});}
+ private void complete(Hobby h){run(()->{dao.complete(h.id());dao.log(me().id(),"Quest completed",h.title()+" was completed.");return null;},z->open(view));}
+ private VBox metric(String v,String l,String s){Label a=new Label(v);a.getStyleClass().add(s);return card(new VBox(7,a,muted(l)));}private HBox bar(String d,int n){Label l=new Label(d);l.setPrefWidth(38);ProgressBar p=progressBar(Math.min(1,n/5d));HBox.setHgrow(p,Priority.ALWAYS);return new HBox(10,l,p,new Label(""+n));}private VBox title(String h,String d){Label x=new Label(h);x.getStyleClass().add("page-greeting");return new VBox(4,x,muted(d));}private VBox section(String h,String d){Label x=new Label(h);x.getStyleClass().add("section-title");return new VBox(2,x,muted(d));}private VBox activity(String w,String h,String d){Label a=new Label(w);a.getStyleClass().add("timeline-time");Label b=new Label(h);b.getStyleClass().add("timeline-title");return new VBox(3,a,b,muted(d));}private VBox card(Node n){VBox b=new VBox(n);b.getStyleClass().add("questlog-card");return b;}private ScrollPane scroll(Node n){VBox w=new VBox(n);w.setPadding(new Insets(30));ScrollPane s=new ScrollPane(w);s.setFitToWidth(true);s.getStyleClass().add("content-scroll");return s;}private Button button(String t,boolean p){Button b=new Button(t);b.getStyleClass().add(p?"questlog-button-primary":"questlog-button-secondary");return b;}private Label muted(String t){Label l=new Label(t);l.getStyleClass().add("muted-text");return l;}private Label badge(String t,String s){Label l=new Label(t);l.getStyleClass().addAll("status-badge",s);return l;}private ProgressBar progressBar(double v){ProgressBar p=new ProgressBar(v);p.setMaxWidth(Double.MAX_VALUE);p.getStyleClass().add("questlog-progress");return p;}private void alert(Alert.AlertType t,String h,String m){Alert a=new Alert(t,m);a.setHeaderText(h);a.show();}private Throwable root(Throwable e){while(e.getCause()!=null)e=e.getCause();return e;}
 }
